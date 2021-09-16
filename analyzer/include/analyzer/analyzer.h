@@ -1,5 +1,5 @@
 #pragma once
 
-#include <string>
+//#include <string>
 
-std::string foo();
+void foo();

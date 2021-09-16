@@ -1,5 +1,5 @@
 add_library(analyzer_lib
-    src/analyzer.cpp)
+    src/analyzer.c)
 
 add_library(Analyzer::library ALIAS analyzer_lib)
 
@@ -16,7 +16,7 @@ target_link_libraries(analyzer_lib
     Analyzer::interface)        
 
 add_executable(analyzer
-    src/main.cpp)    
+    src/main.c)    
 
 include(FindPCAP.cmake)
 

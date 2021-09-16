@@ -1,4 +1,4 @@
 cmake_minimum_required(VERSION 3.0)
-project(analyzer CXX)
+project(analyzer C)
 
 add_subdirectory(analyzer)
