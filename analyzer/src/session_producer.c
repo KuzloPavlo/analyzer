@@ -1,11 +1,9 @@
 #include "analyzer/session_producer.h"
 
-#include "analyzer/session.h"
-#include "analyzer/session_tree.h"
+#include <netinet/tcp.h>
+#include <netinet/ip.h>
 
-
-
-void produce_sessions(pcap_t* descr)
+void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 {
     const u_char* packet = NULL;
 	struct pcap_pkthdr pkthdr;
@@ -16,9 +14,7 @@ void produce_sessions(pcap_t* descr)
 	char dst[24]; // = "255.255.255.255:65535";
 
 	struct session session;
-	struct session_tree_node* session_set = NULL;
-
-    
+	
 	while(1)
 	{
 		packet = pcap_next(descr,&pkthdr);
@@ -99,4 +95,3 @@ void produce_sessions(pcap_t* descr)
 		}
 	}
 }
-

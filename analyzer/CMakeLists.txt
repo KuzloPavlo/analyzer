@@ -1,5 +1,5 @@
 add_library(analyzer_lib
-    #src/session_producer.c
+    src/session_producer.c
     src/session_tree.c)
 
 add_library(Analyzer::library ALIAS analyzer_lib)
