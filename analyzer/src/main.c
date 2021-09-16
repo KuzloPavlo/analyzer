@@ -1,6 +1,7 @@
 #include <pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -11,6 +12,11 @@
 
 #include <netinet/tcp.h>
 #include <netinet/ip.h>
+
+#include "analyzer/session.h"
+#include "analyzer/session_tree.h"
+
+
 
 
 int main(int argc,char **argv)
@@ -48,7 +54,7 @@ int main(int argc,char **argv)
 	}
 
     /* Lets try and compile the program.. non-optimized */
-    if(pcap_compile(descr,&fp,"(tcp[13] == 2) or (tcp[13] == 18) or (tcp[13] == 16)",0,netp) == -1)
+    if(pcap_compile(descr,&fp,"(tcp[13] == 2) or (tcp[13] == 18) or (tcp[13] == 16) or (tcp[13] == 4)",0,netp) == -1)
     {
 		 fprintf(stderr,"Error calling pcap_compile\n"); 
 		 exit(1); 
@@ -60,6 +66,13 @@ int main(int argc,char **argv)
 		fprintf(stderr,"Error setting filter\n"); 
 		exit(1); 
 	}
+
+	char src[24]; // = "255.255.255.255:65535";
+	char dst[24]; // = "255.255.255.255:65535";
+
+	struct session session;
+	struct session_tree_node* session_set = NULL;
+
     
 	while(1)
 	{
@@ -72,10 +85,19 @@ int main(int argc,char **argv)
 
 			if(tcphdr->th_flags == 2)
 			{
-				fprintf(stderr
-						,"SYN %s:%d -> %s:%d\n"
-						, inet_ntoa(iphdr->ip_src), ntohs(tcphdr->th_sport)
+				sprintf(src
+						,"%s:%d"
+						, inet_ntoa(iphdr->ip_src), ntohs(tcphdr->th_sport));
+				sprintf(dst
+						,"%s:%d"
 						, inet_ntoa(iphdr->ip_dst), ntohs(tcphdr->th_dport));
+
+				sprintf(session.src_dst, "%s -> %s", src, dst);
+				session.printed = false;
+
+				session_set = add_node(session_set, session);
+
+				fprintf(stderr, "SYN %s\n", session.src_dst);
 			}
 
 			if(tcphdr->th_flags == 18)
@@ -88,8 +110,28 @@ int main(int argc,char **argv)
 
 			if(tcphdr->th_flags == 16)
 			{
+				sprintf(src
+						,"%s:%d"
+						, inet_ntoa(iphdr->ip_src), ntohs(tcphdr->th_sport));
+				sprintf(dst
+						,"%s:%d"
+						, inet_ntoa(iphdr->ip_dst), ntohs(tcphdr->th_dport));
+
+				sprintf(session.src_dst, "%s -> %s", src, dst);
+
+				struct session_tree_node* res =  find_node(session_set, session.src_dst);
+
+				if(res && (!res->session_.printed))
+				{
+					fprintf(stderr, "SUCCESS %s\n", res->session_.src_dst);
+					res->session_.printed = true;
+				}
+			}
+
+			if(tcphdr->th_flags == 4)
+			{
 				fprintf(stderr
-						,"SUCCESS %s:%d -> %s:%d\n"
+						,"RST %s:%d -> %s:%d\n"
 						, inet_ntoa(iphdr->ip_src), ntohs(tcphdr->th_sport)
 						, inet_ntoa(iphdr->ip_dst), ntohs(tcphdr->th_dport));
 			}
