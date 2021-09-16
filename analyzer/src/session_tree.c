@@ -73,3 +73,21 @@ struct session_tree_node* find_node(struct session_tree_node* root, const char* 
         return find_node(root->left_, src_dst_key);
     }
 }
+
+void traversal_tree(struct session_tree_node* root, traversal_cb cb)
+{
+    if (root == NULL)
+    {
+        return;
+    }
+    
+    traversal_tree(root->left_, cb); 
+    cb(root);
+    traversal_tree(root->right_, cb);
+}
+
+struct session_tree_node* remove_node(struct session_tree_node* root, const char* src_dst_key)
+{
+    // TODO
+    return root;
+}
