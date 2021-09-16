@@ -20,7 +20,46 @@ int main(int argc,char **argv)
     struct bpf_program fp;      /* hold compiled program     */
     bpf_u_int32 maskp;          /* subnet mask               */
     bpf_u_int32 netp;           /* ip                        */
+
+
+	struct session_tree_node* session_set = NULL;
+	struct session session;
+	session.printed = true;
+	session_set = add_node(session_set, session);
+
+	
+
+	pid_t pid;
+	int rv;
+	switch(pid=fork()) 
+	{
+		case -1:
+        perror("fork");
+        exit(1); 
+		case 0:
+		fprintf(stderr, "CHILD");
+		consume_sessions(session_set);
+          
+          exit(rv);
+		default:
+         fprintf(stderr, "PARENT");
+		 fprintf(stderr, "PARENT %d \n",session_set );
+
+
+
+
+/*
+	pcap_if_t *interfaces,*temp;
+    int i=0;
     
+	if(!pcap_findalldevs(&interfaces,errbuf))
+	{
+		for(temp=interfaces;temp;temp=temp->next)
+    {
+        printf("\n%d  :  %s",i++,temp->name);
+    }
+	}*/
+
     /* grab a device to peak into... */
     dev = pcap_lookupdev(errbuf);
     if(dev == NULL)
@@ -55,8 +94,14 @@ int main(int argc,char **argv)
 		exit(1); 
 	}
 
-	struct session_tree_node* session_set = NULL;
+
+	
 	produce_sessions(descr, session_set);
 
+          wait();
+         
+                   WEXITSTATUS(rv);
+         
+  }
     return 0;
 }
