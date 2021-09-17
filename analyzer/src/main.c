@@ -38,18 +38,6 @@ int main(int argc,char **argv)
     
     run_consumer(&th_context, &consumer_tid);
 
-    /*
-	pcap_if_t *interfaces,*temp;
-    int i=0;
-    
-	if(!pcap_findalldevs(&interfaces,errbuf))
-	{
-		for(temp=interfaces;temp;temp=temp->next)
-    {
-        printf("\n%d  :  %s",i++,temp->name);
-    }
-	}*/
-
     /* grab a device to peak into... */
     dev = pcap_lookupdev(errbuf);
     if(dev == NULL)
