@@ -10,7 +10,9 @@
 #include <net/ethernet.h>
 #include <netinet/ether.h> 
 
+#include "analyzer/session_consumer.h"
 #include "analyzer/session_producer.h"
+#include "analyzer/session_tree.h"
 
 int main(int argc,char **argv)
 { 
@@ -22,33 +24,11 @@ int main(int argc,char **argv)
     bpf_u_int32 netp;           /* ip                        */
 
 
-	struct session_tree_node* session_set = NULL;
-	struct session session;
-	session.printed = true;
-	session_set = add_node(session_set, session);
-
+    struct session_tree_node session_set = create_tree();
 	
+    run_consumer(&session_set);
 
-	pid_t pid;
-	int rv;
-	switch(pid=fork()) 
-	{
-		case -1:
-        perror("fork");
-        exit(1); 
-		case 0:
-		fprintf(stderr, "CHILD");
-		consume_sessions(session_set);
-          
-          exit(rv);
-		default:
-         fprintf(stderr, "PARENT");
-		 fprintf(stderr, "PARENT %d \n",session_set );
-
-
-
-
-/*
+    /*
 	pcap_if_t *interfaces,*temp;
     int i=0;
     
@@ -94,14 +74,7 @@ int main(int argc,char **argv)
 		exit(1); 
 	}
 
-
-	
-	produce_sessions(descr, session_set);
-
-          wait();
-         
-                   WEXITSTATUS(rv);
-         
-  }
+	produce_sessions(descr, &session_set);
+  
     return 0;
 }

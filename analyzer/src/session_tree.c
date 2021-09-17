@@ -2,7 +2,32 @@
 
 #include <stddef.h>
 
-struct session_tree_node* add_node(struct session_tree_node* root, struct session ses)
+
+struct session_tree_node create_tree()
+{
+    struct session_tree_node root;
+    root.left_ = NULL;
+    root.right_ = NULL;
+    root.session_.printed = true;
+    strcpy(root.session_.src_dst, "");
+
+    return root;
+}
+
+struct session_tree_node* add_node_impl(struct session_tree_node* root, struct session ses);
+
+struct session_tree_node* add_node(struct session_tree_node* root, const char* src_dst)
+{
+    struct session ses;
+    strcpy(ses.src_dst, src_dst);
+    ses.printed = false;
+    ses.got_syn_ack = false;
+    ses.sent_ack = false;
+
+    return add_node_impl(root, ses);
+}
+
+struct session_tree_node* add_node_impl(struct session_tree_node* root, struct session ses)
 {
     struct session_tree_node *new_node = NULL;
     struct session_tree_node *pr = NULL;
@@ -86,7 +111,7 @@ void traversal_tree(struct session_tree_node* root, traversal_cb cb)
     traversal_tree(root->right_, cb);
 }
 
-struct session_tree_node* remove_node(struct session_tree_node* root, const char* src_dst_key)
+struct session_tree_node* remove_node(struct session_tree_node* root, const char* src_dst_key, traversal_cb cb)
 {
     // TODO
     return root;

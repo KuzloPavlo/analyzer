@@ -22,8 +22,12 @@ add_executable(analyzer
 
 include(FindPCAP.cmake)
 
+find_package (Threads)
+
 target_link_libraries(analyzer
     PRIVATE
         Analyzer::library
-        ${PCAP_LIBRARY})
+        ${PCAP_LIBRARY}
+        ${CMAKE_THREAD_LIBS_INIT})
+
 

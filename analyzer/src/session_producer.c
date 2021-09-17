@@ -12,9 +12,8 @@ void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 
 	char src[24]; // = "255.255.255.255:65535";
 	char dst[24]; // = "255.255.255.255:65535";
+	char src_dst[64]; // = "255.255.255.255:65535 -> 255.255.255.255:65535";
 
-	struct session session;
-	
 	while(1)
 	{
 		packet = pcap_next(descr,&pkthdr);
@@ -34,13 +33,11 @@ void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 						,"%s:%d"
 						, inet_ntoa(iphdr->ip_dst), ntohs(tcphdr->th_dport));
 
-				sprintf(session.src_dst, "%s -> %s", src, dst);
-				session.printed = false;
-				session.got_syn_ack = false;
-
-				session_set = add_node(session_set, session);
-
-				fprintf(stderr, "SYN %s\n", session.src_dst);
+				sprintf(src_dst, "%s -> %s", src, dst);
+				
+				// maybe lock session_set access 
+				session_set = add_node(session_set, src_dst);
+				// unlock
 			}
 
 			// recv:SYN/ACK
@@ -53,13 +50,15 @@ void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 						,"%s:%d"
 						, inet_ntoa(iphdr->ip_src), ntohs(tcphdr->th_sport));
 
-				sprintf(session.src_dst, "%s -> %s", src, dst);
+				sprintf(src_dst, "%s -> %s", src, dst);
 
-				struct session_tree_node* res =  find_node(session_set, session.src_dst);
+				struct session_tree_node* res =  find_node(session_set, src_dst);
 
 				if(res)
 				{
+					// lock session_set access
 					res->session_.got_syn_ack = true;
+					// unlock
 				}
 			}
 
@@ -73,24 +72,23 @@ void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 						,"%s:%d"
 						, inet_ntoa(iphdr->ip_dst), ntohs(tcphdr->th_dport));
 
-				sprintf(session.src_dst, "%s -> %s", src, dst);
+				sprintf(src_dst, "%s -> %s", src, dst);
 
-				//TODO: remove session from the session_set
-				struct session_tree_node* res =  find_node(session_set, session.src_dst);
+				struct session_tree_node* res =  find_node(session_set, src_dst);
 
 				if(res && !res->session_.printed && res->session_.got_syn_ack)
 				{
-					fprintf(stderr, "SUCCESS %s\n", res->session_.src_dst);
-					res->session_.printed = true;
+					// lock session_set access
+					res->session_.sent_ack = true;
+					// unlock
+
+					// TODO send event to consumer about shared data changes
 				}
 			}
 
 			if(tcphdr->th_flags == 4)
 			{
-				fprintf(stderr
-						,"RST %s:%d -> %s:%d\n"
-						, inet_ntoa(iphdr->ip_src), ntohs(tcphdr->th_sport)
-						, inet_ntoa(iphdr->ip_dst), ntohs(tcphdr->th_dport));
+				// TODO: add check for reset intialized by remote peer
 			}
 		}
 	}
