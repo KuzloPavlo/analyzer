@@ -1,6 +1,8 @@
 #pragma once
-#include "session_tree.h"
 
-void run_consumer(struct session_tree_node* session_set);
+#include "thread_context.h"
+#include <pthread.h>
 
-void consume_sessions(struct session_tree_node* session_set);
+void run_consumer(struct thread_context* th_context, pthread_t* tid);
+
+void consume_sessions(struct thread_context* th_context);

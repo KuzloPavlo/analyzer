@@ -1,9 +1,11 @@
 #include "analyzer/session_producer.h"
+#include "analyzer/session_tree.h"
+
 
 #include <netinet/tcp.h>
 #include <netinet/ip.h>
 
-void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
+void produce_sessions(pcap_t* descr, struct thread_context* th_context)
 {
     const u_char* packet = NULL;
 	struct pcap_pkthdr pkthdr;
@@ -36,7 +38,7 @@ void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 				sprintf(src_dst, "%s -> %s", src, dst);
 				
 				// maybe lock session_set access 
-				session_set = add_node(session_set, src_dst);
+				th_context->session_set_ = add_node(th_context->session_set_, src_dst);
 				// unlock
 			}
 
@@ -52,7 +54,7 @@ void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 
 				sprintf(src_dst, "%s -> %s", src, dst);
 
-				struct session_tree_node* res =  find_node(session_set, src_dst);
+				struct session_tree_node* res =  find_node(th_context->session_set_, src_dst);
 
 				if(res)
 				{
@@ -74,7 +76,7 @@ void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 
 				sprintf(src_dst, "%s -> %s", src, dst);
 
-				struct session_tree_node* res =  find_node(session_set, src_dst);
+				struct session_tree_node* res =  find_node(th_context->session_set_, src_dst);
 
 				if(res && !res->session_.printed && res->session_.got_syn_ack)
 				{
@@ -82,7 +84,9 @@ void produce_sessions(pcap_t* descr, struct session_tree_node* session_set)
 					res->session_.sent_ack = true;
 					// unlock
 
-					// TODO send event to consumer about shared data changes
+					pthread_mutex_lock(th_context->lock_);
+					pthread_cond_signal(th_context->cond_);
+					pthread_mutex_unlock(th_context->lock_);
 				}
 			}
 

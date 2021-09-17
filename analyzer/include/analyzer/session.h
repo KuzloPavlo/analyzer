@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <time.h>
 
 struct session
 {
@@ -7,4 +8,5 @@ struct session
     bool got_syn_ack;
     bool sent_ack; 
     bool printed; 
+    struct timespec expired_at_; 
 };

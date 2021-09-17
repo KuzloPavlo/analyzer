@@ -1,7 +1,7 @@
 #include "analyzer/session_tree.h"
+#include "analyzer/keep_alive.h"
 
 #include <stddef.h>
-
 
 struct session_tree_node create_tree()
 {
@@ -10,7 +10,7 @@ struct session_tree_node create_tree()
     root.right_ = NULL;
     root.session_.printed = true;
     strcpy(root.session_.src_dst, "");
-
+    
     return root;
 }
 
@@ -23,6 +23,7 @@ struct session_tree_node* add_node(struct session_tree_node* root, const char* s
     ses.printed = false;
     ses.got_syn_ack = false;
     ses.sent_ack = false;
+    ses.expired_at_ = calculate_timestamp(keep_alive_timeout_ms);
 
     return add_node_impl(root, ses);
 }

@@ -13,6 +13,7 @@
 #include "analyzer/session_consumer.h"
 #include "analyzer/session_producer.h"
 #include "analyzer/session_tree.h"
+#include "analyzer/thread_context.h"
 
 int main(int argc,char **argv)
 { 
@@ -22,11 +23,20 @@ int main(int argc,char **argv)
     struct bpf_program fp;      /* hold compiled program     */
     bpf_u_int32 maskp;          /* subnet mask               */
     bpf_u_int32 netp;           /* ip                        */
+    pthread_t consumer_tid;
 
 
     struct session_tree_node session_set = create_tree();
-	
-    run_consumer(&session_set);
+    pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
+    pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
+    struct thread_context th_context;
+    th_context.session_set_ = &session_set;
+    th_context.cond_ = &cond;
+    th_context.lock_ = &lock;
+
+    
+    run_consumer(&th_context, &consumer_tid);
 
     /*
 	pcap_if_t *interfaces,*temp;
@@ -74,7 +84,9 @@ int main(int argc,char **argv)
 		exit(1); 
 	}
 
-	produce_sessions(descr, &session_set);
+	produce_sessions(descr, &th_context);
+
+    //TODO wait consumer thread here
   
     return 0;
 }

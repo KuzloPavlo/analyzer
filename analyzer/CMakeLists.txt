@@ -1,7 +1,8 @@
 add_library(analyzer_lib
     src/session_producer.c
     src/session_consumer.c
-    src/session_tree.c)
+    src/session_tree.c
+    src/keep_alive.c)
 
 add_library(Analyzer::library ALIAS analyzer_lib)
 
@@ -29,5 +30,3 @@ target_link_libraries(analyzer
         Analyzer::library
         ${PCAP_LIBRARY}
         ${CMAKE_THREAD_LIBS_INIT})
-
-
