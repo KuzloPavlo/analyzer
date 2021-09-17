@@ -21,3 +21,6 @@
 ## Run
 * cd ./analyzer/
 * sudo ./analyzer
+
+## Find already built binary
+* https://github.com/KuzloPavlo/analyzer/blob/main/releases/analyzer
